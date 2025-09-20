@@ -53,7 +53,7 @@ def compute_ranking(text_only=True):
             writer.writerow([i, n, f"{s:.4f}"])
 
     # 순위표 텍스트
-    rank_table = "\n".join([f"{i+1}. {n} ({s:.4f})" for i,(n,s) in enumerate(ranking)])
+    rank_table = "</br>".join([f"<a target='_blank' href='/gradio_api/file=uploads/{n}.png'>{i+1}. {n} ({s:.4f})</a>" for i,(n,s) in enumerate(ranking)])
 
     if text_only:
         return rank_table
@@ -114,10 +114,11 @@ with gr.Blocks(title="TAIM Labs Image Similarity Ranking") as demo:
                 name_input = gr.Textbox(label="Name/ID")
                 submit_btn = gr.Button("Submit")
         with gr.Column():
-            ranking_output = gr.Textbox(value=compute_ranking, label="Ranking Table", lines=25, every=1)
+            gr.Markdown("## Ranking Table")
+            ranking_output = gr.HTML(value=compute_ranking, every=1)
 
     submit_btn.click(fn=add_and_rank,
                      inputs=[upload_input, name_input],
                      outputs=[original_display, top_display, ranking_output])
 
-demo.launch(server_port=2919, server_name="0.0.0.0")
+demo.launch(server_port=2919, server_name="0.0.0.0", allowed_paths=["uploads"])
