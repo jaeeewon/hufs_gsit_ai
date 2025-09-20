@@ -41,7 +41,7 @@ for f in os.listdir(UPLOAD_DIR):
         sim = torch.cosine_similarity(base_feat, feat).item()
         scores[name] = sim
 
-def compute_ranking():
+def compute_ranking(text_only=True):
     """현재 점수 dict에서 순위표와 1등 이미지 반환"""
     ranking = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
@@ -54,6 +54,9 @@ def compute_ranking():
 
     # 순위표 텍스트
     rank_table = "\n".join([f"{i+1}. {n} ({s:.4f})" for i,(n,s) in enumerate(ranking)])
+
+    if text_only:
+        return rank_table
 
     # 1등 이미지
     if ranking:
@@ -88,11 +91,15 @@ def add_and_rank(img, name):
         msg = f" {name}: 새 점수 {new_sim:.4f}, 하지만 기존 점수 {scores[name]:.4f}가 더 좋아서 유지됩니다."
 
     # 순위표 다시 계산
-    top_img, rank_table = compute_ranking()
+    top_img, rank_table = compute_ranking(text_only=False)
     return original_img, top_img, msg + "\n\n" + rank_table
 
+def get_top_img():
+    top_img, _ = compute_ranking(text_only=False)
+    return top_img
+
 #  최초 화면 초기값 (기존 데이터 기반)
-init_top_img, init_ranking = compute_ranking()
+# init_top_img, init_ranking = compute_ranking()
 
 # Gradio 인터페이스
 with gr.Blocks(title="TAIM Labs Image Similarity Ranking") as demo:
@@ -101,16 +108,16 @@ with gr.Blocks(title="TAIM Labs Image Similarity Ranking") as demo:
         with gr.Column():
             with gr.Row():
                 original_display = gr.Image(value=original_img, type="pil", label="Original", height=300, width=300)
-                top_display = gr.Image(value=init_top_img, type="pil", label="🏆 Current #1", height=300, width=300)
+                top_display = gr.Image(value=get_top_img, type="pil", label="🏆 Current #1", height=300, width=300)
             with gr.Row():
                 upload_input = gr.Image(type="pil", label="Upload your image")
                 name_input = gr.Textbox(label="Name/ID")
                 submit_btn = gr.Button("Submit")
         with gr.Column():
-            ranking_output = gr.Textbox(value=init_ranking, label="Ranking Table", lines=25)
+            ranking_output = gr.Textbox(value=compute_ranking, label="Ranking Table", lines=25, every=1)
 
     submit_btn.click(fn=add_and_rank,
                      inputs=[upload_input, name_input],
                      outputs=[original_display, top_display, ranking_output])
 
-demo.launch(share=True)
+demo.launch(server_port=2919, server_name="0.0.0.0")
