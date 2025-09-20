@@ -115,7 +115,7 @@ class Week4Prompting:
             else:
                 return "unexpected case warning"
 
-    def launch(self):
+    def launch(self, **kwargs):
         with gr.Blocks(title="HUFS GSIT week4") as demo:
             gr.Markdown("# prompt well to win the prize!")
 
@@ -151,7 +151,7 @@ class Week4Prompting:
                 outputs=[status_output, leaderboard],
             )
 
-        demo.launch(server_port=1919)
+        demo.launch(**kwargs)
 
 
 if __name__ == "__main__":
@@ -178,4 +178,4 @@ if __name__ == "__main__":
         ),
     ]
     w4 = Week4Prompting(src=prompt_src)
-    w4.launch()
+    w4.launch(server_port=1919, server_name="0.0.0.0")
