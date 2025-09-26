@@ -41,6 +41,8 @@ for f in os.listdir(UPLOAD_DIR):
         sim = torch.cosine_similarity(base_feat, feat).item()
         scores[name] = sim
 
+get_img = lambda x: f"/gradio_api/file=uploads/{x}.png?s={scores[x]}"
+
 def compute_ranking(text_only=True):
     """현재 점수 dict에서 순위표와 1등 이미지 반환"""
     ranking = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -53,7 +55,12 @@ def compute_ranking(text_only=True):
             writer.writerow([i, n, f"{s:.4f}"])
 
     # 순위표 텍스트
-    rank_table = "</br>".join([f"<a target='_blank' href='/gradio_api/file=uploads/{n}.png'>{i+1}. {n} ({s:.4f})</a>" for i,(n,s) in enumerate(ranking)])
+    rank_table = "</br>".join(
+        [
+            f"<a target='_blank' href='{get_img(n)}'>{i+1}. {n} ({s:.4f})</a>"
+            for i, (n, s) in enumerate(ranking)
+        ]
+    )
 
     if text_only:
         return rank_table
@@ -72,10 +79,6 @@ def add_and_rank(img, name):
     if not name:
         return original_img, None, "!이름(ID)을 입력하세요!"
 
-    # 새 이미지 저장
-    path = os.path.join(UPLOAD_DIR, f"{name}.png")
-    img.save(path)
-
     # 새 점수 계산
     im = preprocess(img).unsqueeze(0).to(device)
     with torch.no_grad():
@@ -87,16 +90,23 @@ def add_and_rank(img, name):
     if name not in scores or new_sim > scores[name]:
         scores[name] = new_sim
         msg = f" {name}: 새 점수 {new_sim:.4f} (갱신됨)"
+        # 새 이미지 저장
+        path = os.path.join(UPLOAD_DIR, f"{name}.png")
+        img.save(path)
     else:
         msg = f" {name}: 새 점수 {new_sim:.4f}, 하지만 기존 점수 {scores[name]:.4f}가 더 좋아서 유지됩니다."
 
     # 순위표 다시 계산
     top_img, rank_table = compute_ranking(text_only=False)
-    return original_img, top_img, msg + "\n\n" + rank_table
+    return original_img, top_img, msg + "<br/><br/>" + rank_table
 
 def get_top_img():
-    top_img, _ = compute_ranking(text_only=False)
-    return top_img
+    ranking = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    if ranking:
+        return get_img(ranking[0][0])
+    else:
+        return None
+
 
 #  최초 화면 초기값 (기존 데이터 기반)
 # init_top_img, init_ranking = compute_ranking()
@@ -107,8 +117,21 @@ with gr.Blocks(title="TAIM Labs Image Similarity Ranking") as demo:
     with gr.Row():
         with gr.Column():
             with gr.Row():
-                original_display = gr.Image(value=original_img, type="pil", label="Original", height=300, width=300)
-                top_display = gr.Image(value=get_top_img, type="pil", label="🏆 Current #1", height=300, width=300)
+                original_display = gr.Image(
+                    value=original_img,
+                    type="pil",
+                    label="Original",
+                    height=300,
+                    width=300,
+                )
+                top_display = gr.Image(
+                    value=get_top_img,
+                    type="pil",
+                    label="🏆 Current #1",
+                    height=300,
+                    width=300,
+                    every=1
+                )
             with gr.Row():
                 upload_input = gr.Image(type="pil", label="Upload your image")
                 name_input = gr.Textbox(label="Name/ID")
@@ -117,8 +140,14 @@ with gr.Blocks(title="TAIM Labs Image Similarity Ranking") as demo:
             gr.Markdown("## Ranking Table")
             ranking_output = gr.HTML(value=compute_ranking, every=1)
 
-    submit_btn.click(fn=add_and_rank,
-                     inputs=[upload_input, name_input],
-                     outputs=[original_display, top_display, ranking_output])
+    submit_btn.click(
+        fn=add_and_rank,
+        inputs=[upload_input, name_input],
+        outputs=[original_display, top_display, ranking_output],
+    )
 
-demo.launch(server_port=2919, server_name="0.0.0.0", allowed_paths=["uploads"])
+demo.launch(
+    server_port=2919,
+    server_name="0.0.0.0",
+    allowed_paths=["uploads", "/gradio_api/file=uploads"],
+)
