@@ -1,0 +1,62 @@
+[
+    {
+        "name": "서윤영",
+        "student_id": 202545071,
+        "score": 100.0,
+        "content": "Le ciel derrière la fenêtre était gris cendré.\nDans le vent qui effleurait mes doigts, j'entendais une voix ancienne.\nUne ombre indélébile errait dans ma poitrine,\net son poids me coupait le souffle."
+    },
+    {
+        "name": "노혜미",
+        "student_id": 202545089,
+        "score": 100.0,
+        "content": "Der Himmel vor dem Fenster war in ein Aschgrau gesunken.\nIm Windhauch auf meinen Fingerspitzen hörte ich eine alte Stimme.\nEin unauslöschlicher Schatten irrte in meiner Brust,\ndessen Gewicht mir den Atem nahm."
+    },
+    {
+        "name": "김제민",
+        "student_id": 202545158,
+        "score": 96.8,
+        "content": "كانت السماء خلف النافذة غارقة في لونٍ رماديّ كئيب.\nسمعتُ في نسمات الهواء التي لامست أطراف أصابعي صوتًا عتيقًا.\nظلّ لا يُمحى يتجوّل في أعماق صدري،\nوكأنّ أنفاسي تكاد تختنق تحت وطأة ثقله."
+    },
+    {
+        "name": "최지수",
+        "student_id": 202545078,
+        "score": 95.8,
+        "content": "Le ciel dehors était d’un gris terne.\nDans le vent qui frôlait le bout de mes doigts, j’entendais une voix ancienne.\nUne ombre indélébile errait dans ma poitrine,\net sous son poids, j’avais l’impression d’étouffer."
+    },
+    {
+        "name": "CSY",
+        "student_id": 2014776,
+        "score": 95.8,
+        "content": "Le ciel à l'extérieur était figé dans un gris cendré. Dans le vent qui effleurait le bout de mes doigts, j'entendais une voix ancienne. Une ombre ineffaçable errait dans ma poitrine, et son poids semblait m'étouffer."
+    },
+    {
+        "name": "정사라",
+        "student_id": 202545103,
+        "score": 95.8,
+        "content": "El cielo tras la ventana se hundía en un gris ceniza profundo.\nEn el viento que rozaba la punta de mis dedos escuché una voz antigua.\nUna sombra imborrable vagaba por mi pecho,\ny bajo ese peso sentía que me faltaba el aliento."
+    },
+    {
+        "name": "Copilot",
+        "student_id": 2009909,
+        "score": 95.8,
+        "content": "Le ciel derrière la fenêtre s’était affaissé dans une teinte cendrée. Au creux du vent effleurant mes doigts, une voix ancienne murmurait encore. Une ombre indélébile errait dans ma poitrine, si lourde qu’elle semblait m’ôter le souffle."
+    },
+    {
+        "name": "옐",
+        "student_id": 46,
+        "score": 95.8,
+        "content": "窓の外の空は、灰色に沈み込んでいた。\n指先をかすめる風の中に、私は古い声を聴いた。\n消えることのない影が胸の奥をさまよい、\nその重みに、息が詰まるようであった。"
+    },
+    {
+        "name": "이정혜",
+        "student_id": 202545127,
+        "score": 95.8,
+        "content": "窗外的天空陰沉沉的。\n我在指尖觸及的風中聽見了久違的嗓音。\n揮之不去的陰影迴盪在我的心中，\n那份重量把我壓得喘不過氣。"
+    },
+    {
+        "name": "테스트",
+        "student_id": 1234,
+        "score": 95.0,
+        "content": "窓の外の空は灰色がかって沈んでいた。\n私は指先に触れる風の中で、古びた声を聞いた。\n消えない影が胸の中を彷徨い、\nその重さに息が詰まりそうだった。"
+    }
+]

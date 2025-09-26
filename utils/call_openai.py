@@ -2,14 +2,14 @@ from .abs_class.llm import AbsCallLLM
 from .config import OPENAI_API_KEY
 from openai import OpenAI
 
-supported_models = ["gpt-4.1-mini"]
+supported_models = ["gpt-4o", "gpt-4.1-mini"]
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 class LLMCall(AbsCallLLM):
 
-    def __init__(self, model_name: str = supported_models[0]):
+    def __init__(self, model_name: str = supported_models[1]):
         if model_name not in supported_models:
             raise ValueError(f"model {model_name} not supported")
         self._model_name = model_name
