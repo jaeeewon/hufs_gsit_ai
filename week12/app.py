@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 PASSWORD = os.getenv("PASSWORD")
+__DEV__ = os.getenv("__DEV__", "0") == "1"
 
 CONFIG_PATH = "config.json"
 LEADERBOARD_PATH = "leaderboard.jsonl"
@@ -150,7 +151,8 @@ def run_in_docker(problem_name: str, src_path: str, time_limit: float):
         shutil.copy(src_path, os.path.join(tmpdir, "main.py"))
 
         input_text = PROBLEMS[problem_name].get("input_text", "")
-        with open(os.path.join(tmpdir, "input.txt"), "w", encoding="utf-8") as f:
+        input_filename = PROBLEMS[problem_name].get("input_filename", "input.txt")
+        with open(os.path.join(tmpdir, input_filename), "w", encoding="utf-8") as f:
             f.write(input_text)
 
         if "upload_files" in PROBLEMS[problem_name]:
@@ -210,23 +212,23 @@ def grade_submission(student_id, name, mode, py_file, code_text):
     name = (name or "").strip()
 
     if not student_id:
-        return "학번을 입력하세요", None, "", ""
+        return "학번을 입력하세요", "", ""
     if not name:
-        return "이름을 입력하세요", None, "", ""
+        return "이름을 입력하세요", "", ""
 
     problem_name, time_limit = load_config()
     expected = PROBLEMS[problem_name]["expected_output"]
 
     if mode == "파일 업로드":
         if py_file is None or not py_file.name.endswith(".py"):
-            return ".py 파일을 업로드하세요", None, "", ""
+            return ".py 파일을 업로드하세요", "", ""
         src_path = save_submission_file(py_file, student_id)
         with open(py_file.name, "r", encoding="utf-8") as f:
             code_str = f.read()
     else:
         code_str = (code_text or "").rstrip()
         if not code_str:
-            return "코드를 입력하세요", None, "", ""
+            return "코드를 입력하세요", "", ""
         src_path = save_submission_code(student_id, code_str)
 
     stdout, stderr, elapsed, timed_out = run_in_docker(problem_name, src_path, time_limit)
@@ -263,7 +265,7 @@ def grade_submission(student_id, name, mode, py_file, code_text):
         lines.append(f"- 실행 시간: {elapsed:.3f}초")
     summary = "\n".join(lines)
 
-    return summary, (None if timed_out else elapsed), stdout, stderr
+    return summary, stdout, stderr
 
 
 def get_public_state():
@@ -303,6 +305,35 @@ def admin_set_problem(*args):
         return (admin_msg, problem_name)
 
     return *_inner(*args), build_current_leaderboard_df()
+
+
+def admin_initialize_environment(password):
+    def _inner(password):
+        if password != PASSWORD:
+            curr_problem_name, _ = load_config()
+            return (
+                "잘못된 비밀번호입니다",
+                curr_problem_name,
+            )
+
+        if os.path.exists(SUBMISSIONS_DIR):
+            for filename in os.listdir(SUBMISSIONS_DIR):
+                if filename == ".gitkeep":
+                    continue
+                file_path = os.path.join(SUBMISSIONS_DIR, filename)
+                os.remove(file_path)
+
+        if os.path.exists(LEADERBOARD_PATH):
+            os.remove(LEADERBOARD_PATH)
+
+        default_problem = default_problem_name()
+        default_timeout = 3.0
+        save_config(default_problem, default_timeout)
+
+        admin_msg = "환경을 초기화했습니다"
+        return admin_msg, default_problem
+
+    return *_inner(password), build_current_leaderboard_df()
 
 
 def admin_view_submission(password, _, evt: gr.SelectData):
@@ -372,7 +403,6 @@ with gr.Blocks(title="HUFS GSIT week12") as demo:
             with gr.Column(scale=1):
                 problem_info_md = gr.Markdown(label="현재 문제")
                 result_md = gr.Markdown(label="채점 결과")
-                exec_time_num = gr.Number(label="실행 시간 (초)", precision=3)
                 stdout_box = gr.Textbox(label="프로그램 출력", lines=10, interactive=False)
                 stderr_box = gr.Textbox(label="프로그램 오류 출력", lines=10, interactive=False)
                 leaderboard_df_student = gr.Dataframe(
@@ -400,6 +430,11 @@ with gr.Blocks(title="HUFS GSIT week12") as demo:
                 admin_set_btn = gr.Button("문제 및 timeout 설정")
                 admin_msg_md = gr.Markdown()
 
+        if __DEV__:
+            gr.Markdown("### 환경 초기화")
+            with gr.Row():
+                admin_reset_btn = gr.Button("환경 초기화")
+
         gr.Markdown("### 현재 문제 리더보드 및 제출 상세")
 
         with gr.Row():
@@ -419,6 +454,12 @@ with gr.Blocks(title="HUFS GSIT week12") as demo:
             outputs=[admin_msg_md, admin_problem_select, admin_leaderboard_df],
         )
 
+        admin_reset_btn.click(
+            fn=admin_initialize_environment,
+            inputs=[password],
+            outputs=[admin_msg_md, admin_problem_select, admin_leaderboard_df],
+        )
+
         admin_leaderboard_df.select(
             fn=admin_view_submission,
             inputs=[password, admin_leaderboard_df],
@@ -428,7 +469,7 @@ with gr.Blocks(title="HUFS GSIT week12") as demo:
     submit_btn.click(
         fn=grade_submission,
         inputs=[student_id, name, mode, py_file, code_text],
-        outputs=[result_md, exec_time_num, stdout_box, stderr_box],
+        outputs=[result_md, stdout_box, stderr_box],
     )
 
     demo.load(
