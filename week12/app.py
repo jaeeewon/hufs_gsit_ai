@@ -189,8 +189,8 @@ def run_in_docker(problem_name: str, src_path: str, time_limit: float):
                 input="",
             )
             elapsed = time.monotonic() - start
-            stdout = result.stdout
-            stderr = result.stderr
+            stdout = result.stdout.rstrip()
+            stderr = result.stderr.rstrip()
         except subprocess.TimeoutExpired as e:
             timed_out = True
             elapsed = time.monotonic() - start
